@@ -225,6 +225,20 @@ export default async function ServiceDetailPage({
                 Service scope and transparent rates are published for household planning.
               </p>
 
+              <div style={{ textAlign: "center", marginTop: "12px" }}>
+                <Link
+                  href={`/auth/login?returnUrl=${encodeURIComponent(`/services/${service.slug}`)}`}
+                  style={{
+                    fontSize: "0.82rem",
+                    color: "var(--forest)",
+                    textDecoration: "underline",
+                    fontWeight: 500,
+                  }}
+                >
+                  Sign in to save this service
+                </Link>
+              </div>
+
               <hr
                 style={{
                   margin: "24px 0",
