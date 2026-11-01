@@ -201,27 +201,28 @@ export default async function ServiceDetailPage({
                 </div>
               </div>
 
-              {/* Booking CTA with Phase 4 disclosure */}
+              {/* Disabled booking action indicator */}
               <button
                 type="button"
-                className="button"
-                style={{ width: "100%", marginBottom: "14px" }}
-                onClick={undefined}
+                className="button button-disabled"
+                disabled
+                aria-disabled="true"
+                style={{ width: "100%", marginBottom: "12px" }}
               >
-                Book this service <Icon name="arrow" />
+                Booking opens soon
               </button>
 
               <p
                 style={{
                   margin: 0,
-                  fontSize: "0.75rem",
+                  fontSize: "0.78rem",
                   color: "var(--muted)",
-                  lineHeight: 1.4,
+                  lineHeight: 1.45,
                   textAlign: "center",
                 }}
               >
-                Slot selection and instant confirmation will be enabled in Phase 4.
-                Browse scopes and pricing freely.
+                Online booking and technician scheduling will be introduced in Phase 4.
+                Service scope and transparent rates are published for household planning.
               </p>
 
               <hr
@@ -254,23 +255,27 @@ export default async function ServiceDetailPage({
                 >
                   Verified service available in:
                 </p>
-                <div className="localities-pill-grid">
-                  {(service.serviceAreas && service.serviceAreas.length > 0
-                    ? service.serviceAreas
-                    : [
-                        { name: "MG Marg" },
-                        { name: "Lal Bazaar" },
-                        { name: "Deorali" },
-                        { name: "Tadong" },
-                        { name: "Development Area" },
-                        { name: "Arithang" },
-                      ]
-                  ).map((area, idx) => (
-                    <span key={idx} className="locality-pill">
-                      {area.name}
-                    </span>
-                  ))}
-                </div>
+                {service.serviceAreas && service.serviceAreas.length > 0 ? (
+                  <div className="localities-pill-grid">
+                    {service.serviceAreas.map((area) => (
+                      <span key={area.id || area.slug || area.name} className="locality-pill">
+                        {area.name}
+                      </span>
+                    ))}
+                  </div>
+                ) : (
+                  <p
+                    className="locality-unconfigured-note"
+                    style={{
+                      margin: "8px 0 0",
+                      fontStyle: "italic",
+                      color: "var(--muted)",
+                      fontSize: "0.82rem",
+                    }}
+                  >
+                    Availability not configured
+                  </p>
+                )}
               </div>
             </div>
           </aside>

@@ -66,6 +66,12 @@ test.describe("Phase 2: Customer Experience & Service Catalog", () => {
     await expect(pricingCard.locator(".service-price-tag")).toContainText("₹");
     await expect(pricingCard.locator(".localities-pill-grid")).toBeVisible();
 
+    // Booking CTA: non-clickable, disabled and clearly marked "Booking opens soon"
+    const bookingBtn = pricingCard.locator("button.button-disabled");
+    await expect(bookingBtn).toBeVisible();
+    await expect(bookingBtn).toBeDisabled();
+    await expect(bookingBtn).toContainText("Booking opens soon");
+
     // Back link
     await page.click(".back-link");
     await expect(page).toHaveURL("/services");

@@ -1,5 +1,7 @@
 import "server-only";
 import { getDb, checkDatabaseConnection } from "@/lib/db";
+import { isDevFallbackAllowed } from "@/lib/env";
+import { DatabaseUnavailableError } from "@/lib/errors";
 import { SEED_SERVICE_AREAS, SEED_SERVICES } from "../services/catalog-data";
 import { ServiceAreaDTO } from "./types";
 
@@ -33,10 +35,24 @@ export async function getActiveLocalities(): Promise<ServiceAreaDTO[]> {
         serviceCount: a._count.services,
       }));
     } catch (err) {
-      console.warn("DB query failed for localities, falling back to seed data:", err);
+      console.error(
+        "[GharSewa] Database query failed for localities:",
+        err instanceof Error ? err.message : "Internal database error"
+      );
+      if (!isDevFallbackAllowed()) {
+        throw new DatabaseUnavailableError("Unable to load service areas from database.");
+      }
+      console.warn("[GharSewa] Serving development seed localities following query failure.");
     }
+  } else {
+    if (!isDevFallbackAllowed()) {
+      console.error("[GharSewa] Database unreachable in production environment. Refusing seed fallback.");
+      throw new DatabaseUnavailableError("Service areas currently unreachable.");
+    }
+    console.warn("[GharSewa] Database unreachable; serving development seed localities (environment permitted).");
   }
 
+  // Development seed fallback only when explicitly permitted
   return SEED_SERVICE_AREAS.map((a, index) => {
     const count = SEED_SERVICES.filter((s) =>
       s.serviceAreas?.some((sa) => sa.slug === a.slug)

@@ -4,11 +4,16 @@ import { SEED_CATEGORIES, SEED_SERVICE_AREAS, SEED_SERVICES } from "../src/modul
 const prisma = new PrismaClient();
 
 async function main() {
+  if (process.env.NODE_ENV === "production" && process.env.ALLOW_PRODUCTION_SEED !== "true") {
+    console.error("❌ FATAL: Seeding development catalog data into a production environment is strictly prohibited.");
+    process.exit(1);
+  }
+
   console.log("🌱 Starting GharSewa Phase 2 catalog seed (Development Data)...");
   console.log("⚠️ NOTICE: All catalog entries represent curated service definitions for Gangtok.");
   console.log("⚠️ No fictitious workers, reviews, or customer ratings are included.\n");
 
-  // Upsert Service Areas
+  // Upsert Service Areas with consistent UUIDs
   console.log("📍 Seeding Gangtok service areas...");
   for (const area of SEED_SERVICE_AREAS) {
     await prisma.serviceArea.upsert({
@@ -20,7 +25,7 @@ async function main() {
         isActive: true,
       },
       create: {
-        id: area.id.length === 36 ? area.id : undefined,
+        id: area.id,
         name: area.name,
         slug: area.slug,
         pinCode: area.pinCode,
@@ -28,10 +33,10 @@ async function main() {
         isActive: true,
       },
     });
-    console.log(`  ✓ Area: ${area.name} (${area.pinCode})`);
+    console.log(`  ✓ Area: ${area.name} (${area.pinCode}) [${area.id}]`);
   }
 
-  // Upsert Service Categories
+  // Upsert Service Categories with consistent UUIDs
   console.log("\n🗂️ Seeding service categories...");
   for (const cat of SEED_CATEGORIES) {
     await prisma.serviceCategory.upsert({
@@ -44,6 +49,7 @@ async function main() {
         isActive: true,
       },
       create: {
+        id: cat.id,
         name: cat.name,
         slug: cat.slug,
         description: cat.description,
@@ -52,7 +58,7 @@ async function main() {
         isActive: true,
       },
     });
-    console.log(`  ✓ Category: ${cat.name}`);
+    console.log(`  ✓ Category: ${cat.name} [${cat.id}]`);
   }
 
   // Fetch created categories and areas to link foreign keys
@@ -62,8 +68,8 @@ async function main() {
   const catMap = new Map(dbCategories.map((c) => [c.slug, c.id]));
   const areaMap = new Map(dbAreas.map((a) => [a.slug, a.id]));
 
-  // Upsert Services
-  console.log("\n🛠️ Seeding verified service catalog items...");
+  // Upsert Services and synchronize relationships
+  console.log("\n🛠️ Seeding verified service catalog items & synchronizing areas...");
   for (const srv of SEED_SERVICES) {
     const categoryId = catMap.get(srv.category?.slug || "");
     if (!categoryId) {
@@ -87,6 +93,7 @@ async function main() {
         isActive: true,
       },
       create: {
+        id: srv.id,
         categoryId,
         name: srv.name,
         slug: srv.slug,
@@ -102,30 +109,43 @@ async function main() {
       },
     });
 
-    // Link service areas
-    for (const area of srv.serviceAreas || []) {
-      const areaId = areaMap.get(area.slug);
-      if (areaId) {
-        await prisma.serviceAreaService.upsert({
-          where: {
-            serviceId_serviceAreaId: {
-              serviceId: service.id,
-              serviceAreaId: areaId,
-            },
-          },
-          update: {},
-          create: {
+    // Synchronize service area relationships:
+    const desiredAreaIds = (srv.serviceAreas || [])
+      .map((area) => areaMap.get(area.slug))
+      .filter((id): id is string => Boolean(id));
+
+    // 1. Remove stale associations
+    const deleteResult = await prisma.serviceAreaService.deleteMany({
+      where: {
+        serviceId: service.id,
+        serviceAreaId: { notIn: desiredAreaIds },
+      },
+    });
+    if (deleteResult.count > 0) {
+      console.log(`    ↳ Pruned ${deleteResult.count} stale service area association(s) for ${srv.name}`);
+    }
+
+    // 2. Synchronize current desired associations
+    for (const areaId of desiredAreaIds) {
+      await prisma.serviceAreaService.upsert({
+        where: {
+          serviceId_serviceAreaId: {
             serviceId: service.id,
             serviceAreaId: areaId,
           },
-        });
-      }
+        },
+        update: {},
+        create: {
+          serviceId: service.id,
+          serviceAreaId: areaId,
+        },
+      });
     }
 
-    console.log(`  ✓ Service: ${srv.name} (₹${srv.basePrice}, ${srv.pricingModel})`);
+    console.log(`  ✓ Service: ${srv.name} (₹${srv.basePrice}, ${srv.pricingModel}) -> ${desiredAreaIds.length} areas synced`);
   }
 
-  console.log("\n✅ Database seeding complete!");
+  console.log("\n✅ Database seeding complete and synchronized!");
 }
 
 main()

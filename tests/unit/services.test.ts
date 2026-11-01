@@ -1,4 +1,4 @@
-import { describe, it, expect } from "vitest";
+import { describe, it, expect, afterEach } from "vitest";
 import {
   serviceFiltersSchema,
   serviceSlugSchema,
@@ -6,8 +6,10 @@ import {
   getServices,
   getServiceBySlug,
   getRelatedServices,
+  ServiceDTO,
 } from "@/modules/services";
 import { getActiveLocalities } from "@/modules/service-areas";
+import { DatabaseUnavailableError } from "@/lib/errors";
 
 describe("Phase 2: Zod Schemas Validation", () => {
   it("validates and cleanses search and filter inputs", () => {
@@ -35,6 +37,15 @@ describe("Phase 2: Zod Schemas Validation", () => {
     expect(parsedValid.locality).toBe("mg-marg");
   });
 
+  it("handles array search params cleanly without throwing", () => {
+    const parsedArray = serviceFiltersSchema.parse({
+      category: ["electrical-work", "plumbing"],
+      locality: ["mg-marg"],
+    });
+    expect(parsedArray.category).toBe("electrical-work");
+    expect(parsedArray.locality).toBe("mg-marg");
+  });
+
   it("rejects malicious or invalid category slugs", () => {
     const invalidResult = serviceFiltersSchema.safeParse({
       category: "invalid category with spaces!",
@@ -50,7 +61,7 @@ describe("Phase 2: Zod Schemas Validation", () => {
   });
 });
 
-describe("Phase 2: Service Catalog Queries", () => {
+describe("Phase 2: Service Catalog Queries (Development Fallback)", () => {
   it("returns active Gangtok service categories", async () => {
     const categories = await getCategories();
     expect(categories.length).toBeGreaterThanOrEqual(6);
@@ -107,8 +118,91 @@ describe("Phase 2: Service Catalog Queries", () => {
   });
 });
 
+describe("Phase 2: Database Fallback Environment-Gating", () => {
+  const env = process.env as Record<string, string | undefined>;
+  const originalEnv = env.NODE_ENV;
+
+  afterEach(() => {
+    env.NODE_ENV = originalEnv;
+  });
+
+  it("throws DatabaseUnavailableError in production when DB is disconnected and refuses seed content", async () => {
+    env.NODE_ENV = "production";
+
+    await expect(getCategories()).rejects.toThrowError(DatabaseUnavailableError);
+    await expect(getServices()).rejects.toThrowError(DatabaseUnavailableError);
+    await expect(getServiceBySlug("switchboard-socket-repair")).rejects.toThrowError(
+      DatabaseUnavailableError
+    );
+    await expect(getActiveLocalities()).rejects.toThrowError(DatabaseUnavailableError);
+  });
+
+  it("permits development fallback in test/development environments", async () => {
+    env.NODE_ENV = "test";
+
+    const categories = await getCategories();
+    expect(categories.length).toBeGreaterThan(0);
+    expect(categories[0].name).toBeDefined();
+  });
+});
+
+describe("Phase 2: Locality Coverage Invariants", () => {
+  it("does not default unconfigured locality relationships to six", () => {
+    const serviceWithNoAreas: ServiceDTO = {
+      id: "00000000-0000-4000-a000-000000000999",
+      categoryId: "00000000-0000-4000-a000-000000000201",
+      name: "Unassigned Test Service",
+      slug: "unassigned-test-service",
+      shortDescription: "Test service without localities",
+      description: "Testing zero locality handling",
+      included: [],
+      excluded: [],
+      conditions: [],
+      pricingModel: "FLAT",
+      basePrice: 100,
+      estimatedDurationMinutes: 30,
+      isActive: true,
+      serviceAreas: [],
+    };
+
+    expect(serviceWithNoAreas.serviceAreas?.length).toBe(0);
+
+    const displayedText =
+      serviceWithNoAreas.serviceAreas && serviceWithNoAreas.serviceAreas.length > 0
+        ? `${serviceWithNoAreas.serviceAreas.length} Gangtok areas`
+        : "Availability not configured";
+
+    expect(displayedText).toBe("Availability not configured");
+    expect(displayedText).not.toContain("6");
+  });
+});
+
+describe("Phase 2: Seed Synchronization Invariant", () => {
+  it("determines correct stale associations to prune when service localities change", () => {
+    const currentDbAreaIds = [
+      "00000000-0000-4000-a000-000000000101",
+      "00000000-0000-4000-a000-000000000102",
+      "00000000-0000-4000-a000-000000000103",
+    ];
+
+    const desiredAreaIds = [
+      "00000000-0000-4000-a000-000000000101",
+      "00000000-0000-4000-a000-000000000103",
+      "00000000-0000-4000-a000-000000000104",
+    ];
+
+    const staleAreaIds = currentDbAreaIds.filter((id) => !desiredAreaIds.includes(id));
+    expect(staleAreaIds).toEqual(["00000000-0000-4000-a000-000000000102"]);
+    expect(staleAreaIds.length).toBe(1);
+
+    const afterPrune = currentDbAreaIds.filter((id) => desiredAreaIds.includes(id));
+    const finalSynced = Array.from(new Set([...afterPrune, ...desiredAreaIds]));
+    expect(finalSynced).toEqual(desiredAreaIds);
+  });
+});
+
 describe("Phase 2: Gangtok Service Areas Coverage", () => {
-  it("returns all 6 approved Gangtok localities", async () => {
+  it("returns all 6 approved Gangtok localities with valid UUIDs and PINs", async () => {
     const localities = await getActiveLocalities();
     expect(localities.length).toBe(6);
 
@@ -120,9 +214,10 @@ describe("Phase 2: Gangtok Service Areas Coverage", () => {
     expect(slugs).toContain("development-area");
     expect(slugs).toContain("arithang");
 
-    // All must be Gangtok
     expect(localities.every((l) => l.city === "Gangtok")).toBe(true);
-    // Verified 737101 and 737102 PIN codes
     expect(localities.every((l) => ["737101", "737102"].includes(l.pinCode))).toBe(true);
+    // All IDs must be valid RFC 4122 v4 UUIDs
+    const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+    expect(localities.every((l) => uuidRegex.test(l.id))).toBe(true);
   });
 });

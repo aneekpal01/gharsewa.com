@@ -47,8 +47,21 @@ export function ServiceCard({ service }: ServiceCardProps) {
       </div>
 
       <div className="service-card-footer">
-        <span style={{ fontSize: "0.78rem", color: "var(--moss)", fontWeight: 600 }}>
-          {service.serviceAreas?.length || 6} Gangtok areas
+        <span
+          style={{
+            fontSize: "0.78rem",
+            color:
+              service.serviceAreas && service.serviceAreas.length > 0
+                ? "var(--moss)"
+                : "var(--muted)",
+            fontWeight: 600,
+          }}
+        >
+          {service.serviceAreas && service.serviceAreas.length > 0
+            ? `${service.serviceAreas.length} Gangtok area${
+                service.serviceAreas.length === 1 ? "" : "s"
+              }`
+            : "Availability not configured"}
         </span>
         <Link
           href={`/services/${service.slug}`}

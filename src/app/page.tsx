@@ -14,6 +14,8 @@ import {
 import { getFeaturedServices } from "@/modules/services";
 import { getActiveLocalities } from "@/modules/service-areas";
 
+export const dynamic = "force-dynamic";
+
 export const metadata = {
   title: "GharSewa — Dependable Home Services for Gangtok",
   description:
@@ -170,7 +172,7 @@ export default async function HomePage() {
                   Verified service routes & direct hill coverage.
                 </p>
                 <div className="area-status">
-                  <Icon name="check" /> Active Coverage ({area.serviceCount ?? 6} services)
+                  <Icon name="check" /> Active Coverage ({area.serviceCount ?? 0} services)
                 </div>
               </div>
             ))}

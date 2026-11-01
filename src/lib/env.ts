@@ -22,6 +22,21 @@ export function getDirectUrl(): string {
   return process.env.DIRECT_URL ?? getDatabaseUrl();
 }
 
+/**
+ * Determines whether development/test fallback to mock or seed data is permitted.
+ * Strictly forbidden in production environments to prevent exposing dummy data.
+ */
+export function isDevFallbackAllowed(): boolean {
+  if (process.env.NODE_ENV === "production") {
+    return false;
+  }
+  return (
+    process.env.NODE_ENV === "development" ||
+    process.env.NODE_ENV === "test" ||
+    process.env.ENABLE_DEV_SEED_FALLBACK === "true"
+  );
+}
+
 export function validateEnv(): EnvConfig {
   return envSchema.parse({
     DATABASE_URL: process.env.DATABASE_URL,

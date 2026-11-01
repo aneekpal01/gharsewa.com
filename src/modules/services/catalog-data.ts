@@ -1,17 +1,17 @@
 import { ServiceCategoryDTO, ServiceDTO, ServiceAreaSummaryDTO } from "./types";
 
 export const SEED_SERVICE_AREAS: ServiceAreaSummaryDTO[] = [
-  { id: "area-1", name: "MG Marg", slug: "mg-marg", pinCode: "737101" },
-  { id: "area-2", name: "Lal Bazaar", slug: "lal-bazaar", pinCode: "737101" },
-  { id: "area-3", name: "Deorali", slug: "deorali", pinCode: "737102" },
-  { id: "area-4", name: "Tadong", slug: "tadong", pinCode: "737102" },
-  { id: "area-5", name: "Development Area", slug: "development-area", pinCode: "737101" },
-  { id: "area-6", name: "Arithang", slug: "arithang", pinCode: "737101" },
+  { id: "00000000-0000-4000-a000-000000000101", name: "MG Marg", slug: "mg-marg", pinCode: "737101" },
+  { id: "00000000-0000-4000-a000-000000000102", name: "Lal Bazaar", slug: "lal-bazaar", pinCode: "737101" },
+  { id: "00000000-0000-4000-a000-000000000103", name: "Deorali", slug: "deorali", pinCode: "737102" },
+  { id: "00000000-0000-4000-a000-000000000104", name: "Tadong", slug: "tadong", pinCode: "737102" },
+  { id: "00000000-0000-4000-a000-000000000105", name: "Development Area", slug: "development-area", pinCode: "737101" },
+  { id: "00000000-0000-4000-a000-000000000106", name: "Arithang", slug: "arithang", pinCode: "737101" },
 ];
 
 export const SEED_CATEGORIES: ServiceCategoryDTO[] = [
   {
-    id: "cat-1",
+    id: "00000000-0000-4000-a000-000000000201",
     name: "Electrical work",
     slug: "electrical-work",
     description: "Safe household electrical repairs, switchgear fixes, and wiring maintenance by verified technicians.",
@@ -20,7 +20,7 @@ export const SEED_CATEGORIES: ServiceCategoryDTO[] = [
     isActive: true,
   },
   {
-    id: "cat-2",
+    id: "00000000-0000-4000-a000-000000000202",
     name: "Plumbing",
     slug: "plumbing",
     description: "Reliable pipeline leak repairs, tap replacements, and water flow troubleshooting across Gangtok.",
@@ -29,7 +29,7 @@ export const SEED_CATEGORIES: ServiceCategoryDTO[] = [
     isActive: true,
   },
   {
-    id: "cat-3",
+    id: "00000000-0000-4000-a000-000000000203",
     name: "Home cleaning",
     slug: "home-cleaning",
     description: "Structured deep room and bathroom sanitization designed specifically for hill climate homes.",
@@ -38,7 +38,7 @@ export const SEED_CATEGORIES: ServiceCategoryDTO[] = [
     isActive: true,
   },
   {
-    id: "cat-4",
+    id: "00000000-0000-4000-a000-000000000204",
     name: "Carpentry",
     slug: "carpentry",
     description: "Precision wood adjustments, door alignment, lock fittings, and custom shelf mountings.",
@@ -47,7 +47,7 @@ export const SEED_CATEGORIES: ServiceCategoryDTO[] = [
     isActive: true,
   },
   {
-    id: "cat-5",
+    id: "00000000-0000-4000-a000-000000000205",
     name: "Appliance repair",
     slug: "appliance-servicing",
     description: "Geyser, water heater, washing machine, and heating appliance diagnostics and repairs.",
@@ -56,7 +56,7 @@ export const SEED_CATEGORIES: ServiceCategoryDTO[] = [
     isActive: true,
   },
   {
-    id: "cat-6",
+    id: "00000000-0000-4000-a000-000000000206",
     name: "Painting",
     slug: "painting-care",
     description: "Targeted damp wall touch-ups, moisture sealant treatments, and fresh trim painting.",
@@ -68,8 +68,8 @@ export const SEED_CATEGORIES: ServiceCategoryDTO[] = [
 
 export const SEED_SERVICES: ServiceDTO[] = [
   {
-    id: "srv-1",
-    categoryId: "cat-1",
+    id: "00000000-0000-4000-a000-000000000301",
+    categoryId: "00000000-0000-4000-a000-000000000201",
     name: "Switchboard & Socket Repair",
     slug: "switchboard-socket-repair",
     shortDescription: "Diagnosis and replacement of faulty switches, sockets, or loose modular wall plates.",
@@ -98,8 +98,8 @@ export const SEED_SERVICES: ServiceDTO[] = [
     serviceAreas: SEED_SERVICE_AREAS,
   },
   {
-    id: "srv-2",
-    categoryId: "cat-1",
+    id: "00000000-0000-4000-a000-000000000302",
+    categoryId: "00000000-0000-4000-a000-000000000201",
     name: "Ceiling Fan & Light Fixture Installation",
     slug: "fan-light-fixture-installation",
     shortDescription: "Secure mounting and wiring of ceiling fans, chandeliers, or decorative light fixtures.",
@@ -127,8 +127,8 @@ export const SEED_SERVICES: ServiceDTO[] = [
     serviceAreas: SEED_SERVICE_AREAS,
   },
   {
-    id: "srv-3",
-    categoryId: "cat-2",
+    id: "00000000-0000-4000-a000-000000000303",
+    categoryId: "00000000-0000-4000-a000-000000000202",
     name: "Tap, Valve & Pipe Leak Repair",
     slug: "tap-valve-leak-repair",
     shortDescription: "Fix leaking bib cocks, angle valves, shower mixers, and exposed pipeline connections.",
@@ -156,8 +156,8 @@ export const SEED_SERVICES: ServiceDTO[] = [
     serviceAreas: SEED_SERVICE_AREAS,
   },
   {
-    id: "srv-4",
-    categoryId: "cat-2",
+    id: "00000000-0000-4000-a000-000000000304",
+    categoryId: "00000000-0000-4000-a000-000000000202",
     name: "Cistern & Flush System Overhaul",
     slug: "cistern-flush-overhaul",
     shortDescription: "Complete diagnostic and repair of toilet flush tanks, siphons, and slow filling mechanisms.",
@@ -184,8 +184,8 @@ export const SEED_SERVICES: ServiceDTO[] = [
     serviceAreas: SEED_SERVICE_AREAS,
   },
   {
-    id: "srv-5",
-    categoryId: "cat-3",
+    id: "00000000-0000-4000-a000-000000000305",
+    categoryId: "00000000-0000-4000-a000-000000000203",
     name: "Intensive Bathroom Deep Cleaning",
     slug: "bathroom-deep-cleaning",
     shortDescription: "Thorough descaling of wall tiles, sanitization of fixtures, and floor grime removal.",
@@ -214,8 +214,8 @@ export const SEED_SERVICES: ServiceDTO[] = [
     serviceAreas: SEED_SERVICE_AREAS,
   },
   {
-    id: "srv-6",
-    categoryId: "cat-4",
+    id: "00000000-0000-4000-a000-000000000306",
+    categoryId: "00000000-0000-4000-a000-000000000204",
     name: "Door Alignment & Lock Installation",
     slug: "door-alignment-lock-installation",
     shortDescription: "Fix stuck doors, sagging hinges, and fit new mortise or cylindrical door locks.",
@@ -241,8 +241,8 @@ export const SEED_SERVICES: ServiceDTO[] = [
     serviceAreas: SEED_SERVICE_AREAS,
   },
   {
-    id: "srv-7",
-    categoryId: "cat-5",
+    id: "00000000-0000-4000-a000-000000000307",
+    categoryId: "00000000-0000-4000-a000-000000000205",
     name: "Water Geyser Diagnostic & Descaling",
     slug: "water-geyser-diagnostic",
     shortDescription: "Heating element check, thermostat verification, and tank sediment flush.",
@@ -269,8 +269,8 @@ export const SEED_SERVICES: ServiceDTO[] = [
     serviceAreas: SEED_SERVICE_AREAS,
   },
   {
-    id: "srv-8",
-    categoryId: "cat-6",
+    id: "00000000-0000-4000-a000-000000000308",
+    categoryId: "00000000-0000-4000-a000-000000000206",
     name: "Damp Wall Sealing & Spot Primer",
     slug: "damp-wall-sealing-primer",
     shortDescription: "Moisture barrier application and plaster scraping on peeling interior wall patches.",

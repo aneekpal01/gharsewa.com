@@ -1,9 +1,10 @@
 import "server-only";
 import { getDb, checkDatabaseConnection } from "@/lib/db";
+import { isDevFallbackAllowed } from "@/lib/env";
+import { DatabaseUnavailableError } from "@/lib/errors";
 import {
   SEED_CATEGORIES,
   SEED_SERVICES,
-  SEED_SERVICE_AREAS,
 } from "./catalog-data";
 import { serviceFiltersSchema, serviceSlugSchema } from "./schemas";
 import { ServiceCategoryDTO, ServiceDTO, ServiceFilters } from "./types";
@@ -38,11 +39,24 @@ export async function getCategories(): Promise<ServiceCategoryDTO[]> {
         serviceCount: cat._count.services,
       }));
     } catch (err) {
-      console.warn("DB query failed, falling back to seed categories:", err);
+      console.error(
+        "[GharSewa] Database query failed for categories:",
+        err instanceof Error ? err.message : "Internal database error"
+      );
+      if (!isDevFallbackAllowed()) {
+        throw new DatabaseUnavailableError("Unable to load service categories.");
+      }
+      console.warn("[GharSewa] Serving development seed categories following query failure.");
     }
+  } else {
+    if (!isDevFallbackAllowed()) {
+      console.error("[GharSewa] Database unreachable in production environment. Refusing seed fallback.");
+      throw new DatabaseUnavailableError("Service catalogue is currently unreachable.");
+    }
+    console.warn("[GharSewa] Database unreachable; serving development seed categories (environment permitted).");
   }
 
-  // Fallback to development seed data
+  // Fallback to development seed data only when explicitly permitted
   return SEED_CATEGORIES.map((cat) => ({
     ...cat,
     serviceCount: SEED_SERVICES.filter(
@@ -105,11 +119,24 @@ export async function getFeaturedServices(limit = 4): Promise<ServiceDTO[]> {
         })),
       }));
     } catch (err) {
-      console.warn("DB query failed, falling back to seed services:", err);
+      console.error(
+        "[GharSewa] Database query failed for featured services:",
+        err instanceof Error ? err.message : "Internal database error"
+      );
+      if (!isDevFallbackAllowed()) {
+        throw new DatabaseUnavailableError("Unable to load featured services.");
+      }
+      console.warn("[GharSewa] Serving development seed featured services following query failure.");
     }
+  } else {
+    if (!isDevFallbackAllowed()) {
+      console.error("[GharSewa] Database unreachable in production environment. Refusing seed fallback.");
+      throw new DatabaseUnavailableError("Service catalogue is currently unreachable.");
+    }
+    console.warn("[GharSewa] Database unreachable; serving development seed featured services (environment permitted).");
   }
 
-  // Select distinct representative services for the homepage highlights
+  // Select distinct representative services for the homepage highlights in development
   const featured = [
     SEED_SERVICES.find((s) => s.category?.slug === "electrical-work"),
     SEED_SERVICES.find((s) => s.category?.slug === "plumbing"),
@@ -203,8 +230,21 @@ export async function getServices(rawFilters?: unknown): Promise<ServiceDTO[]> {
         })),
       }));
     } catch (err) {
-      console.warn("DB query failed, falling back to seed services:", err);
+      console.error(
+        "[GharSewa] Database query failed for services:",
+        err instanceof Error ? err.message : "Internal database error"
+      );
+      if (!isDevFallbackAllowed()) {
+        throw new DatabaseUnavailableError("Unable to load services from database.");
+      }
+      console.warn("[GharSewa] Serving development seed services following query failure.");
     }
+  } else {
+    if (!isDevFallbackAllowed()) {
+      console.error("[GharSewa] Database unreachable in production environment. Refusing seed fallback.");
+      throw new DatabaseUnavailableError("Service catalogue is currently unreachable.");
+    }
+    console.warn("[GharSewa] Database unreachable; serving development seed services (environment permitted).");
   }
 
   // Filter in memory for seed development data
@@ -293,8 +333,21 @@ export async function getServiceBySlug(rawSlug: unknown): Promise<ServiceDTO | n
         })),
       };
     } catch (err) {
-      console.warn("DB query failed, falling back to seed services:", err);
+      console.error(
+        "[GharSewa] Database query failed for service detail:",
+        err instanceof Error ? err.message : "Internal database error"
+      );
+      if (!isDevFallbackAllowed()) {
+        throw new DatabaseUnavailableError("Unable to load service details from database.");
+      }
+      console.warn("[GharSewa] Serving development seed service detail following query failure.");
     }
+  } else {
+    if (!isDevFallbackAllowed()) {
+      console.error("[GharSewa] Database unreachable in production environment. Refusing seed fallback.");
+      throw new DatabaseUnavailableError("Service catalogue is currently unreachable.");
+    }
+    console.warn("[GharSewa] Database unreachable; serving development seed service detail (environment permitted).");
   }
 
   const found = SEED_SERVICES.find((s) => s.slug === slug && s.isActive);
