@@ -15,3 +15,27 @@ export function getDb(): PrismaClient {
 }
 
 export const db = getDb;
+
+let dbStatusCache: { isConnected: boolean; timestamp: number } | null = null;
+
+export async function checkDatabaseConnection(ttlMs = 10000): Promise<boolean> {
+  const now = Date.now();
+  if (dbStatusCache && now - dbStatusCache.timestamp < ttlMs) {
+    return dbStatusCache.isConnected;
+  }
+
+  try {
+    const client = getDb();
+    await Promise.race([
+      client.$queryRaw`SELECT 1`,
+      new Promise((_, reject) =>
+        setTimeout(() => reject(new Error("DB connection timeout")), 500)
+      ),
+    ]);
+    dbStatusCache = { isConnected: true, timestamp: now };
+    return true;
+  } catch {
+    dbStatusCache = { isConnected: false, timestamp: now };
+    return false;
+  }
+}

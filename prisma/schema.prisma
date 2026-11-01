@@ -12,11 +12,90 @@ datasource db {
 }
 
 // Foundational schema health record for Phase 1.5 verification.
-// Domain entities (User, Booking, Assignment, etc.) will be added in their respective approved phases.
 model SchemaBaseline {
   id        String   @id @default(uuid()) @db.Uuid
   version   String   @default("1.5.0")
   createdAt DateTime @default(now()) @map("created_at")
 
   @@map("schema_baseline")
+}
+
+// -------------------------------------------------------------
+// PHASE 2: Customer Experience & Service Catalog Models
+// -------------------------------------------------------------
+
+enum PricingModel {
+  FLAT
+  BASE_PLUS_HOURLY
+  INSPECTION_FIRST
+
+  @@map("pricing_model")
+}
+
+model ServiceCategory {
+  id           String    @id @default(uuid()) @db.Uuid
+  name         String    @db.VarChar(100)
+  slug         String    @unique @db.VarChar(100)
+  description  String    @db.Text
+  icon         String    @db.VarChar(50)
+  displayOrder Int       @default(0) @map("display_order")
+  isActive     Boolean   @default(true) @map("is_active")
+  createdAt    DateTime  @default(now()) @map("created_at")
+  updatedAt    DateTime  @updatedAt @map("updated_at")
+
+  services     Service[]
+
+  @@map("service_categories")
+}
+
+model Service {
+  id                      String              @id @default(uuid()) @db.Uuid
+  categoryId              String              @map("category_id") @db.Uuid
+  name                    String              @db.VarChar(150)
+  slug                    String              @unique @db.VarChar(150)
+  shortDescription        String              @map("short_description") @db.VarChar(300)
+  description             String              @db.Text
+  included                String[]
+  excluded                String[]
+  conditions              String[]
+  pricingModel            PricingModel        @default(FLAT) @map("pricing_model")
+  basePrice               Int                 @map("base_price") // INR
+  estimatedDurationMinutes Int                @default(60) @map("estimated_duration_minutes")
+  isActive                Boolean             @default(true) @map("is_active")
+  createdAt               DateTime            @default(now()) @map("created_at")
+  updatedAt               DateTime            @updatedAt @map("updated_at")
+
+  category                ServiceCategory     @relation(fields: [categoryId], references: [id], onDelete: Cascade)
+  serviceAreas            ServiceAreaService[]
+
+  @@index([categoryId])
+  @@map("services")
+}
+
+model ServiceArea {
+  id           String               @id @default(uuid()) @db.Uuid
+  name         String               @db.VarChar(100)
+  slug         String               @unique @db.VarChar(100)
+  city         String               @default("Gangtok") @db.VarChar(100)
+  pinCode      String               @map("pin_code") @db.VarChar(10)
+  displayOrder Int                  @default(0) @map("display_order")
+  isActive     Boolean              @default(true) @map("is_active")
+  createdAt    DateTime             @default(now()) @map("created_at")
+  updatedAt    DateTime             @updatedAt @map("updated_at")
+
+  services     ServiceAreaService[]
+
+  @@map("service_areas")
+}
+
+model ServiceAreaService {
+  serviceId     String      @map("service_id") @db.Uuid
+  serviceAreaId String      @map("service_area_id") @db.Uuid
+  createdAt     DateTime    @default(now()) @map("created_at")
+
+  service       Service     @relation(fields: [serviceId], references: [id], onDelete: Cascade)
+  serviceArea   ServiceArea @relation(fields: [serviceAreaId], references: [id], onDelete: Cascade)
+
+  @@id([serviceId, serviceAreaId])
+  @@map("service_area_services")
 }
