@@ -1,0 +1,17 @@
+node_modules/
+.next/
+out/
+coverage/
+*.log
+*.tsbuildinfo
+.env
+.env.*
+!.env.example
+!.env.*.example
+prisma/*.db
+prisma/*.db-journal
+
+# Exclude API endpoints
+src/app/api/
+app/api/
+

@@ -1,0 +1,22 @@
+// GharSewa Prisma Configuration
+// Master Baseline v1.4 / Phase 1.5
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
+}
+
+// Foundational schema health record for Phase 1.5 verification.
+// Domain entities (User, Booking, Assignment, etc.) will be added in their respective approved phases.
+model SchemaBaseline {
+  id        String   @id @default(uuid()) @db.Uuid
+  version   String   @default("1.5.0")
+  createdAt DateTime @default(now()) @map("created_at")
+
+  @@map("schema_baseline")
+}
